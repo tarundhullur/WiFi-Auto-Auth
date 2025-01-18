@@ -1,5 +1,9 @@
+# **Auto Wifi Login Script**
+The Auto Wifi Login Script is an open-source solution designed to automate the process of connecting to Wi-Fi networks. By leveraging saved credentials, this script eliminates the need for manual Wi-Fi logins, making it ideal for users who frequently connect to multiple networks or in environments with recurring Wi-Fi setups. The script works across various operating systems, and it can be easily customized to meet different network configurations.
 
-### **Setting Up the Auto Wifi Login Script Project Locally**
+Whether you're setting up a new device or simply want to automate Wi-Fi connectivity, this script can save time and effort, while ensuring seamless access to the internet.
+
+# **Setting Up the Project Locally**
 
 #### 1. **Clone the Repository:**
    Clone the repository to your local machine:
