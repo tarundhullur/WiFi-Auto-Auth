@@ -16,7 +16,6 @@ To set up the Auto Wifi Login Script project, one should have the following prer
 3. Working Knowledge of Wi-Fi Networking(GET,POST requests)
 4. Basic Knowledge of Scheduling Tasks (Cron Jobs)
 
-<br/>
 
 # **Setting Up the Project Locally**
 
