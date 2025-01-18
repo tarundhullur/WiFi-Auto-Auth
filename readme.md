@@ -82,12 +82,10 @@
 
    This will automatically attempt to connect to the Wi-Fi every 5 minutes.
 
-#### 7. **Contributing:**
+# **Contributing:**
    Fork the repository, make improvements or bug fixes, and submit a pull request. Contributions to enhance the functionality (e.g., adding support for more OS or network types) are welcome.
 
-#### 8. **License:**
+# **License:**
    This project is licensed under the [MIT License](LICENSE), which allows for free use, modification, and distribution.
 
 ---
-
-This guide should make it easy for anyone to set up and use your **Auto Wifi Login Script** locally, with necessary environment variables and scheduling via `cron`. Let me know if you need any additional details or adjustments!
