@@ -79,26 +79,18 @@ To set up the Auto Wifi Login Script project, one should have the following prer
    ```
 
 #### 6. **Schedule the Script to Run Automatically :**
-   To make the script run periodically, you can schedule it with **cron** (Linux/Mac). For example, to run the script every 5 minutes:
 
-   1. Open the crontab editor:
-      ```bash
-      crontab -e
-      ```
-
-   2. Add a cron job entry to run the script every 5 minutes (modify path and script name as necessary):
-      ```bash
-      */5 * * * * /path/to/your/script/auto_wifi_login.sh
-      ```
-   
-      Or for a Python script:
-      ```bash
-      */5 * * * * /usr/bin/python3 /path/to/your/script/wifi_auto_login.py
-      ```
-
-   3. Save and exit the editor.
-
-   This will automatically attempt to connect to the Wi-Fi every 5 minutes.
+ **Add the Script to Cron**:
+   - Open the crontab editor: `crontab -e`
+   - Add the following line to run the script automatically at startup:
+     ```bash
+     @reboot /path/to/your/script/auto_wifi_login.sh
+     ```
+   - For Python users:
+     ```bash
+     @reboot /usr/bin/python3 /path/to/your/script/wifi_auto_login.py
+     ```
+ ***That's All***
 
 # **Contributing:**
    Fork the repository, make improvements or bug fixes, and submit a pull request. Contributions to enhance the functionality (e.g., adding support for more OS or network types) are welcome.
