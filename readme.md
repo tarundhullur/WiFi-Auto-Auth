@@ -9,6 +9,15 @@ The Auto Wifi Login Script is an open-source solution designed to automate the p
 
 Whether you're setting up a new device or simply want to automate Wi-Fi connectivity, this script can save time and effort, while ensuring seamless access to the internet.
 
+To set up the Auto Wifi Login Script project, one should have the following prerequisites and basic knowledge:
+
+1. Basic Knowledge of Command Line / Terminal.
+2. Understanding of Scripting Language (Bash/shell scrpting and python basics)
+3. Working Knowledge of Wi-Fi Networking(GET,POST requests)
+4. Basic Knowledge of Scheduling Tasks (Cron Jobs)
+
+<br/>
+
 # **Setting Up the Project Locally**
 
 #### 1. **Clone the Repository:**
