@@ -5,22 +5,7 @@ This script automatically logs into Wi-Fi networks using pre-saved credentials a
 
 Ideal for schools, workplaces, or any location with recurring Wi-Fi logins, this script eliminates manual re-authentication and ensures effortless connectivity. It's fully customizable, works across different networks, and can even be automated on startup for a seamless experience.
 
-## **Features**
-
--  Secure credential storage using SQLite database
--  Login attempt logging with automatic cleanup
--  Support for multiple network configurations
--  Automatic error handling and retries
--  Detailed status tracking and logging
-
-## **Requirements**  
-
-Before running the script, ensure you have:  
-✔ Python 3 installed  
-✔ Required libraries  
-✔ WiFi network login page details  
-
-### For step-by-step setup instructions, please refer to [setup.md](https://github.com/01bps/WiFi-Auto-Auth/blob/main/setup.md).
+### **For step-by-step setup instructions, please refer to [setup.md](https://github.com/01bps/WiFi-Auto-Auth/blob/main/setup.md)**
 
 ## **Security Notes**
 - Credentials are securely stored in an SQLite database within your home directory.
