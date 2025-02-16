@@ -5,7 +5,7 @@ This script automatically logs into Wi-Fi networks using pre-saved credentials a
 
 Ideal for schools, workplaces, or any location with recurring Wi-Fi logins, this script eliminates manual re-authentication and ensures effortless connectivity. It's fully customizable, works across different networks, and can even be automated on startup for a seamless experience.
 
-Say goodbye to typing passwords repeatedly and hello to smart, automated Wi-Fi access!"
+Say goodbye to typing passwords repeatedly and hello to smart, automated Wi-Fi access
 
 
 ## **Features**
@@ -16,23 +16,20 @@ Say goodbye to typing passwords repeatedly and hello to smart, automated Wi-Fi a
 -  Automatic error handling and retries
 -  Detailed status tracking and logging
 
-## **📌 Requirements**  
+## **Requirements**  
 
 Before running the script, ensure you have:  
-✔ **Python 3** installed (`python3 --version`)  
-✔ **Required libraries** (`requests`, `sqlite3`)  
-✔ **WiFi network login page details `(You may refer to the screenshots in the setup.md)`**  
+✔ Python 3 installed  
+✔ Required libraries  
+✔ WiFi network login page details  
+
+### For step-by-step setup instructions, please refer to [setup.md](https://github.com/01bps/RGIPT_Auto_Connect/blob/main/setup.md).
 
 ## **Security Notes**
-- Credentials are stored locally in your home directory
-- No sensitive data is transmitted except during login
-- Logs are automatically cleaned up after 30 days
-
-## **Contributing**
-Feel free to fork, improve, and submit pull requests. Some areas for improvement:
-- Additional network portal support
-- GUI interface
-- Network status monitoring
+- Credentials are securely stored in an SQLite database within your home directory.
+- No sensitive data is transmitted except during the login request.
+- Passwords are masked in logs for security.
+- Login attempts are logged in SQLite, and old logs are automatically deleted after reboot
 
 
 # **License:**
