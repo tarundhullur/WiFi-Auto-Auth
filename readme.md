@@ -1,4 +1,4 @@
-# **WiFiLoginBot**
+# **WiFi-Auto-Auth**
 "Tired of entering the same Wi-Fi credentials every time you join the network? So was I! 😅 At my institute, logging into Wi-Fi manually was a hassle, so I built this Auto WiFi Login Script to automate the process!
 
 This script automatically logs into Wi-Fi networks using pre-saved credentials and now comes with SQLite integration to store login attempts. It keeps track of all login activities, captures dynamic session parameters (a), and provides a user-friendly log display for debugging.
