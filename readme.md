@@ -18,8 +18,6 @@ Whether you're setting up a new device or simply want to automate Wi-Fi connecti
 - 📊 Detailed status tracking and logging
 
 
-```
-
 ## **Security Notes**
 - Credentials are stored locally in your home directory
 - No sensitive data is transmitted except during login
@@ -36,4 +34,3 @@ Feel free to fork, improve, and submit pull requests. Some areas for improvement
    This project is licensed under the [MIT License](LICENSE), which allows for free use, modification, and distribution.
 
 🔧 **Need help?** Open an issue on GitHub!
----
