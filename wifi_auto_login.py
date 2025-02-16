@@ -1,170 +1,111 @@
-import os
-import requests
 import sqlite3
-from datetime import datetime, timedelta
-from xml.etree import ElementTree as ET
-import logging
-from pathlib import Path
+import requests
+import datetime
+import re
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger('WiFiLogin')
+# Database setup
+DB_NAME = "wifi_log.db"
 
-class WiFiLogin:
-    def __init__(self):
-        # parent directory at home
-        self.db_dir = Path.home() / '.wifi_login'
-        self.db_dir.mkdir(exist_ok=True)
-        self.db_path = self.db_dir / 'wifi.db'
-        
-        self.init_database()
-        
-        # whenever we restart it will clean the old data.
-        self.clean_old_logs()
+def setup_database():
+    """Create the database and table if they do not exist."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS login_attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            username TEXT,
+            password TEXT,
+            a TEXT,
+            response_status TEXT,
+            response_message TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
 
-    def init_database(self):
-        """Initialize SQLite database with required tables"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Create tables
-        cursor.executescript('''
-            CREATE TABLE IF NOT EXISTS credentials (
-                id INTEGER PRIMARY KEY,
-                network_name TEXT UNIQUE,
-                username TEXT,
-                password TEXT,
-                login_url TEXT
-            );
+def log_attempt(username, password, a, response_status, response_message):
+    """Log each login attempt in the database."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO login_attempts (timestamp, username, password, a, response_status, response_message)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (datetime.datetime.now(), username, "******", a, response_status, response_message))
+    conn.commit()
+    conn.close()
 
-            CREATE TABLE IF NOT EXISTS login_logs (
-                id INTEGER PRIMARY KEY,
-                timestamp DATETIME,
-                network_name TEXT,
-                status TEXT,
-                message TEXT
-            );
-        ''')
-        
-        conn.commit()
-        conn.close()
+def extract_message(response_text):
+    """Extracts the meaningful message from the XML response."""
+    match = re.search(r"<message><!\[CDATA\[(.*?)\]\]></message>", response_text)
+    return match.group(1) if match else "Unknown response"
 
-    def save_credentials(self, network_name, username, password, login_url):
-        """Save or update network credentials"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT OR REPLACE INTO credentials (network_name, username, password, login_url)
-            VALUES (?, ?, ?, ?)
-        ''', (network_name, username, password, login_url))
-        
-        conn.commit()
-        conn.close()
-        logger.info(f"Credentials saved for network: {network_name}")
+def wifi_login():
+    """Perform the WiFi login request and log the result."""
+    url = "POST url from the inspect element"  # Change Required
+    username = "username"
+    password = "password"
+    a_value = str(int(datetime.datetime.now().timestamp()))  # Generate dynamic 'a' value, you may refer to the screenshots in the setup.md file
 
-    def get_credentials(self, network_name):
-        """Retrieve credentials for a network"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT username, password, login_url FROM credentials WHERE network_name = ?', 
-                      (network_name,))
-        result = cursor.fetchone()
-        
-        conn.close()
-        return result if result else None
+    payload = {
+        "mode": "191",
+        "username": username,
+        "password": password,
+        "a": a_value,
+        "producttype": "0"
+    }
 
-    def log_attempt(self, network_name, status, message):
-        """Log login attempt"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO login_logs (timestamp, network_name, status, message)
-            VALUES (?, ?, ?, ?)
-        ''', (datetime.now(), network_name, status, message))
-        
-        conn.commit()
-        conn.close()
+    try:
+        response = requests.post(url, data=payload)
+        response_status = response.status_code
+        response_message = extract_message(response.text)
 
-    def clean_old_logs(self):
-        """Delete logs older than 30 days"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
-        cursor.execute('DELETE FROM login_logs WHERE timestamp < ?', (thirty_days_ago,))
-        
-        deleted_count = cursor.rowcount
-        conn.commit()
-        conn.close()
-        
-        if deleted_count > 0:
-            logger.info(f"Cleaned {deleted_count} old log entries")
+        print(f"\n📌 Login Attempt")
+        print(f"Time: {datetime.datetime.now()}")
+        print(f"Username: {username}")
+        print(f"Session ID (a): {a_value}")
+        print(f"Status: {response_status}")
+        print(f"Message: {response_message}")
+        print("-" * 80)
 
-    def login(self, network_name):
-        """Attempt to login to the network"""
-        credentials = self.get_credentials(network_name)
-        if not credentials:
-            message = f"No credentials found for network: {network_name}"
-            logger.error(message)
-            self.log_attempt(network_name, "ERROR", message)
-            return False, message
+        # Log the attempt in SQLite
+        log_attempt(username, password, a_value, response_status, response_message)
 
-        username, password, login_url = credentials
-        
-        payload = {
-            "username": username,
-            "password": password,
-            "mode": "191"
-        }
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error: {e}")
+        log_attempt(username, password, a_value, "FAILED", str(e))
 
-        try:
-            response = requests.post(login_url, data=payload)
-            
-            if response.status_code == 200:
-                xml_response = ET.fromstring(response.text)
-                status = xml_response.find("status").text if xml_response.find("status") is not None else "UNKNOWN"
-                message = xml_response.find("message").text if xml_response.find("message") is not None else ""
-                
-                success = "LIVE" in status or "success" in message.lower()
-                log_status = "SUCCESS" if success else "FAILED"
-                
-                self.log_attempt(network_name, log_status, message)
-                logger.info(f"Login attempt for {network_name}: {log_status} - {message}")
-                
-                return success, message
-            else:
-                message = f"HTTP Error: {response.status_code}"
-                self.log_attempt(network_name, "ERROR", message)
-                logger.error(message)
-                return False, message
-                
-        except Exception as e:
-            message = f"Login error: {str(e)}"
-            self.log_attempt(network_name, "ERROR", message)
-            logger.error(message)
-            return False, message
+def view_logs(limit=5):
+    """Display login logs in a readable format."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT timestamp, username, a, response_status, response_message 
+        FROM login_attempts 
+        ORDER BY timestamp DESC 
+        LIMIT ?
+    """, (limit,))
 
-# Example usage
+    logs = cursor.fetchall()
+    conn.close()
+
+    if not logs:
+        print("No login attempts found.")
+        return
+
+    print("\n📌 Recent Login Attempts")
+    print("=" * 80)
+
+    for log in logs:
+        timestamp, username, a, status, message = log
+        print(f"Time: {timestamp}")
+        print(f"Username: {username}")
+        print(f"Session ID (a): {a}")
+        print(f"Status: {status}")
+        print(f"Message: {message}")
+        print("-" * 80)
+
 if __name__ == "__main__":
-    wifi = WiFiLogin()
-    
-    network_name = "campus_wifi(Mine is RGIPT_WLAN)"  # Change this to your network name
-    login_url = "http://192.168.100.1:8090/login.xml"  # Change this to your login URL
-    
-    # You only need to save credentials once
-    wifi.save_credentials(
-        network_name=network_name,
-        username="your_username",  # Change this
-        password="your_password",  # Change this
-        login_url=login_url
-    )
-    
-    # Try to login
-    success, message = wifi.login(network_name)
-    print(f"Login {'successful' if success else 'failed'}: {message}")
+    setup_database()  # Ensure the database is set up
+    wifi_login()  # Attempt login
+    view_logs(5)  # Show last 5 login attempts
