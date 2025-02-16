@@ -1,22 +1,27 @@
 # **Auto Wifi Login**
-Tired of entering the same Wi-Fi credentials every time you join the network? So was I! 😅 In my institute, there was no way to automate Wi-Fi login, and I found myself typing the same password repeatedly. That's when I decided to create this Auto Wifi Login Script!
+"Tired of entering the same Wi-Fi credentials every time you join the network? So was I! 😅 At my institute, logging into Wi-Fi manually was a hassle, so I built this Auto WiFi Login Script to automate the process!
 
-This script automates the process of logging into Wi-Fi networks using pre-saved credentials. Whether you're stuck in a loop of constant re-logins at your school, work, or any place that requires repetitive Wi-Fi access, this script has got you covered! 🎉
+This script automatically logs into Wi-Fi networks using pre-saved credentials and now comes with SQLite integration to store login attempts. It keeps track of all login activities, captures dynamic session parameters (a), and provides a user-friendly log display for debugging.
 
-Feel free to customize it for your own institution, workplace, or any location where you need to log in to the same Wi-Fi every time. Say goodbye to repetitive typing and hello to effortless connectivity!
+Ideal for schools, workplaces, or any location with recurring Wi-Fi logins, this script eliminates manual re-authentication and ensures effortless connectivity. It's fully customizable, works across different networks, and can even be automated on startup for a seamless experience.
 
-The Auto Wifi Login Script is an open-source solution designed to automate the process of connecting to Wi-Fi networks. By leveraging saved credentials, this script eliminates the need for manual Wi-Fi logins, making it ideal for users who frequently connect to multiple networks or in environments with recurring Wi-Fi setups. The script works across various operating systems, and it can be easily customized to meet different network configurations.
+Say goodbye to typing passwords repeatedly and hello to smart, automated Wi-Fi access!"
 
-Whether you're setting up a new device or simply want to automate Wi-Fi connectivity, this script can save time and effort, while ensuring seamless access to the internet.
 
 ## **Features**
 
-- 🔒 Secure credential storage using SQLite database
-- 📝 Login attempt logging with automatic cleanup
-- 🌐 Support for multiple network configurations
-- 🔄 Automatic error handling and retries
-- 📊 Detailed status tracking and logging
+-  Secure credential storage using SQLite database
+-  Login attempt logging with automatic cleanup
+-  Support for multiple network configurations
+-  Automatic error handling and retries
+-  Detailed status tracking and logging
 
+## **📌 Requirements**  
+
+Before running the script, ensure you have:  
+✔ **Python 3** installed (`python3 --version`)  
+✔ **Required libraries** (`requests`, `sqlite3`)  
+✔ **WiFi network login page details `(You may refer to the screenshots in the setup.md)`**  
 
 ## **Security Notes**
 - Credentials are stored locally in your home directory
