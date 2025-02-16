@@ -20,7 +20,7 @@ Before running the script, ensure you have:
 ✔ Required libraries  
 ✔ WiFi network login page details  
 
-### For step-by-step setup instructions, please refer to [setup.md](https://github.com/01bps/RGIPT_Auto_Connect/blob/main/setup.md).
+### For step-by-step setup instructions, please refer to [setup.md](https://github.com/01bps/WiFi-Auto-Auth/blob/main/setup.md).
 
 ## **Security Notes**
 - Credentials are securely stored in an SQLite database within your home directory.
