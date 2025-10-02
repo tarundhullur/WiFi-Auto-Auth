@@ -2,9 +2,21 @@ import sqlite3
 import requests
 import datetime
 import re
+import sys
+import os
+import argparse
+
+# Add the current directory to the path so we can import config
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from config.logging_config import get_logger, setup_logging_from_env, LoggerFactory
 
 # Database setup
 DB_NAME = "wifi_log.db"
+
+# Initialize logging
+setup_logging_from_env()
+logger = get_logger(__name__)
 
 def setup_database():
     """Create the database and table if they do not exist."""
@@ -60,19 +72,17 @@ def wifi_login():
         response_status = response.status_code
         response_message = extract_message(response.text)
 
-        print(f"\n📌 Login Attempt")
-        print(f"Time: {datetime.datetime.now()}")
-        print(f"Username: {username}")
-        print(f"Session ID (a): {a_value}")
-        print(f"Status: {response_status}")
-        print(f"Message: {response_message}")
-        print("-" * 80)
+        logger.info("WiFi login attempt completed")
+        logger.info(f"Username: {username}")
+        logger.info(f"Session ID (a): {a_value}")
+        logger.info(f"Response status: {response_status}")
+        logger.info(f"Response message: {response_message}")
 
         # Log the attempt in SQLite
         log_attempt(username, password, a_value, response_status, response_message)
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error: {e}")
+        logger.error(f"WiFi login request failed: {e}")
         log_attempt(username, password, a_value, "FAILED", str(e))
 
 def view_logs(limit=5):
@@ -90,22 +100,106 @@ def view_logs(limit=5):
     conn.close()
 
     if not logs:
-        print("No login attempts found.")
+        logger.info("No login attempts found in database")
         return
 
-    print("\n📌 Recent Login Attempts")
-    print("=" * 80)
+    logger.info("Recent login attempts retrieved from database")
+    logger.info("=" * 80)
 
     for log in logs:
         timestamp, username, a, status, message = log
-        print(f"Time: {timestamp}")
-        print(f"Username: {username}")
-        print(f"Session ID (a): {a}")
-        print(f"Status: {status}")
-        print(f"Message: {message}")
-        print("-" * 80)
+        logger.info(f"Time: {timestamp}")
+        logger.info(f"Username: {username}")
+        logger.info(f"Session ID (a): {a}")
+        logger.info(f"Status: {status}")
+        logger.info(f"Message: {message}")
+        logger.info("-" * 80)
+
+def parse_arguments():
+    """Parse command line arguments for logging configuration."""
+    parser = argparse.ArgumentParser(description='WiFi Auto Login with Professional Logging')
+
+    # Logging configuration arguments
+    parser.add_argument(
+        '--log-level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help='Set the logging level (default: INFO)'
+    )
+    parser.add_argument(
+        '--log-file',
+        action='store_true',
+        default=True,
+        help='Enable file logging (default: enabled)'
+    )
+    parser.add_argument(
+        '--no-log-file',
+        action='store_false',
+        dest='log_file',
+        help='Disable file logging'
+    )
+    parser.add_argument(
+        '--log-dir',
+        default='./logs',
+        help='Directory for log files (default: ./logs)'
+    )
+    parser.add_argument(
+        '--console-logging',
+        action='store_true',
+        default=True,
+        help='Enable console logging (default: enabled)'
+    )
+    parser.add_argument(
+        '--no-console-logging',
+        action='store_false',
+        dest='console_logging',
+        help='Disable console logging'
+    )
+
+    # Application arguments
+    parser.add_argument(
+        '--view-logs',
+        type=int,
+        metavar='N',
+        help='View last N login attempts instead of performing login'
+    )
+    parser.add_argument(
+        '--max-attempts',
+        type=int,
+        default=5,
+        help='Maximum number of login attempts to show when viewing logs (default: 5)'
+    )
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    setup_database()  # Ensure the database is set up
-    wifi_login()  # Attempt login
-    view_logs(5)  # Show last 5 login attempts
+    # Parse command line arguments
+    args = parse_arguments()
+
+    # Configure logging from command line arguments
+    LoggerFactory.configure_from_args(args)
+
+    # Get logger after configuration
+    logger = get_logger(__name__)
+
+    logger.info("WiFi Auto Login application started")
+
+    try:
+        setup_database()  # Ensure the database is set up
+
+        if args.view_logs is not None:
+            # View logs only
+            logger.info(f"Viewing last {args.max_attempts} login attempts")
+            view_logs(args.max_attempts)
+        else:
+            # Perform login and show recent logs
+            logger.info("Performing WiFi login attempt")
+            wifi_login()  # Attempt login
+            logger.info("Login attempt completed, retrieving recent logs")
+            view_logs(args.max_attempts)  # Show last 5 login attempts
+
+    except Exception as e:
+        logger.critical(f"Application error: {e}", exc_info=True)
+        sys.exit(1)
+
+    logger.info("WiFi Auto Login application completed successfully")
