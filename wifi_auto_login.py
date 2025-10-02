@@ -2,6 +2,7 @@ import sqlite3
 import requests
 import datetime
 import re
+import argparse
 
 # Database setup
 DB_NAME = "wifi_log.db"
@@ -105,7 +106,90 @@ def view_logs(limit=5):
         print(f"Message: {message}")
         print("-" * 80)
 
+def clear_logs():
+    """Deletes all logs from the login_attempts table."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM login_attempts")
+    conn.commit()
+    conn.close()
+    print("✅ All logs have been cleared.")
+
+def test_connection():
+    """Tests if the login URL is reachable."""
+    # This URL should eventually come from a config file
+    url = "POST url from the inspect element" # The same URL from wifi_login()
+    print(f" testing connection to {url}...")
+    try:
+        response = requests.head(url, timeout=5) # Use HEAD to be efficient
+        if response.status_code == 200:
+            print(f"✅ Connection successful! The server responded with status {response.status_code}.")
+        else:
+            print(f"⚠️ Connection successful, but the server responded with status {response.status_code}.")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Connection failed: {e}")
+
+def run_setup_wizard():
+    """Guides the user through an interactive setup process."""
+    print("--- WiFi-Auto-Auth Interactive Setup ---")
+    print("This wizard will help you configure the script.")
+    
+    url = input("1. Enter the POST request URL from your network's login page: ")
+    username = input("2. Enter your login username: ")
+    password = input("3. Enter your login password: ")
+
+    print("\nSetup Complete!")
+
 if __name__ == "__main__":
-    setup_database()  # Ensure the database is set up
-    wifi_login()  # Attempt login
-    view_logs(5)  # Show last 5 login attempts
+    parser = argparse.ArgumentParser(
+        description="A script to automatically log into captive portal WiFi networks."
+    )
+    
+    parser.add_argument(
+        '--login', 
+        action='store_true', 
+        help="Perform a login attempt."
+    )
+    parser.add_argument(
+        '--view-logs', 
+        nargs='?', 
+        const=5, 
+        type=int, 
+        metavar='N', 
+        help="View the last N login attempts. Defaults to 5 if no number is provided."
+    )
+    parser.add_argument(
+        '--setup', 
+        action='store_true', 
+        help="Run the interactive setup wizard to configure credentials."
+    )
+    parser.add_argument(
+        '--test', 
+        action='store_true', 
+        help="Test the connection to the login URL without logging in."
+    )
+    parser.add_argument(
+        '--clear-logs', 
+        action='store_true', 
+        help="Clear all login logs from the database."
+    )
+
+    args = parser.parse_args()
+
+    setup_database()  # Ensure the database is always set up
+
+    if args.login:
+        wifi_login()
+    elif args.view_logs is not None:
+        view_logs(args.view_logs)
+    elif args.setup:
+        run_setup_wizard() 
+    elif args.test:
+        test_connection()
+    elif args.clear_logs:
+        clear_logs()
+    else:
+        print("No arguments provided. Performing default login action.")
+        wifi_login()
+        view_logs(1)
+
