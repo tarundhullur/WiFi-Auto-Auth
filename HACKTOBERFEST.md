@@ -19,17 +19,11 @@ Show your support by starring this repository!
 
 ## 🏆 All Contributions
 
-We'll keep updating this once a while.
-<!-- 
-HOW TO ADD YOUR CONTRIBUTION:
-Copy the template below and fill in your details at the bottom of this file
--->
+Keep Adding your contribution in the below template,One after the other:
 
----
-
-## Configuration File Support
-**Contributor:**
-**Issue:** #1
+## Your Issue Title
+**Contributor ID:**
+**Issue reference No.:** #1
 
 ### What I Changed:
 - Created config.json file for storing WiFi credentials
