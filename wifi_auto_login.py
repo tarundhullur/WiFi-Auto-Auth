@@ -2,8 +2,27 @@ import sqlite3
 import requests
 import datetime
 import re
+import json
+import os
 
-# Database setup
+# --- CONFIGURATION ---
+CONFIG_PATH = "config.json"
+
+# Error handling if config.json is missing
+if not os.path.exists(CONFIG_PATH):
+    raise FileNotFoundError(
+        "Missing config.json. Please copy config.example.json to config.json and fill in your details."
+    )
+
+with open(CONFIG_PATH, "r") as f:
+    config = json.load(f)
+
+URL = config["wifi_url"]
+USERNAME = config["username"]
+PASSWORD = config["password"]
+PRODUCT_TYPE = config.get("product_type", "0")  # Default to "0" if not provided
+
+# --- DATABASE SETUP ---
 DB_NAME = "wifi_log.db"
 
 def setup_database():
@@ -35,46 +54,46 @@ def log_attempt(username, password, a, response_status, response_message):
     conn.commit()
     conn.close()
 
+# --- HELPER FUNCTIONS ---
 def extract_message(response_text):
     """Extracts the meaningful message from the XML response."""
     match = re.search(r"<message><!\[CDATA\[(.*?)\]\]></message>", response_text)
     return match.group(1) if match else "Unknown response"
 
+# --- MAIN WIFI LOGIN FUNCTION ---
 def wifi_login():
     """Perform the WiFi login request and log the result."""
-    url = "POST url from the inspect element"  # Change Required
-    username = "username"
-    password = "password"
-    a_value = str(int(datetime.datetime.now().timestamp()))  # Generate dynamic 'a' value, you may refer to the screenshots in the setup.md file
+    a_value = str(int(datetime.datetime.now().timestamp()))  # Generate dynamic 'a' value
 
     payload = {
         "mode": "191",
-        "username": username,
-        "password": password,
+        "username": USERNAME,
+        "password": PASSWORD,
         "a": a_value,
-        "producttype": "0"
+        "producttype": PRODUCT_TYPE
     }
 
     try:
-        response = requests.post(url, data=payload)
+        response = requests.post(URL, data=payload)
         response_status = response.status_code
         response_message = extract_message(response.text)
 
         print(f"\n📌 Login Attempt")
         print(f"Time: {datetime.datetime.now()}")
-        print(f"Username: {username}")
+        print(f"Username: {USERNAME}")
         print(f"Session ID (a): {a_value}")
         print(f"Status: {response_status}")
         print(f"Message: {response_message}")
         print("-" * 80)
 
         # Log the attempt in SQLite
-        log_attempt(username, password, a_value, response_status, response_message)
+        log_attempt(USERNAME, PASSWORD, a_value, response_status, response_message)
 
     except requests.exceptions.RequestException as e:
         print(f"❌ Error: {e}")
-        log_attempt(username, password, a_value, "FAILED", str(e))
+        log_attempt(USERNAME, PASSWORD, a_value, "FAILED", str(e))
 
+# --- VIEW LOGIN LOGS ---
 def view_logs(limit=5):
     """Display login logs in a readable format."""
     conn = sqlite3.connect(DB_NAME)
@@ -105,7 +124,8 @@ def view_logs(limit=5):
         print(f"Message: {message}")
         print("-" * 80)
 
+# --- MAIN EXECUTION ---
 if __name__ == "__main__":
-    setup_database()  # Ensure the database is set up
-    wifi_login()  # Attempt login
-    view_logs(5)  # Show last 5 login attempts
+    setup_database()   # Ensure the database is set up
+    wifi_login()       # Attempt login
+    view_logs(5)       # Show last 5 login attempts
