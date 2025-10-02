@@ -29,7 +29,7 @@ Test it locally
 Make sure it works!
 
 ### Step 4: Document What You Did
-Open HACKTOBERFEST.md and add your contribution at the bottom:
+Open [HACKTOBERFEST.md](HACKTOBERFEST.md) and add your contribution at the bottom:
 ## What I Added/Fixed
 **Contributor:** @your-github-username  
 **Issue:** #issue-number
