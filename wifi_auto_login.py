@@ -2,16 +2,29 @@ import sqlite3
 import requests
 import datetime
 import re
-import sys
-import os
 import argparse
+import json
+import os
 
-# Add the current directory to the path so we can import config
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config.logging_config import get_logger, setup_logging_from_env, LoggerFactory
+# --- CONFIGURATION ---
+CONFIG_PATH = "config.json"
 
-# Database setup
+# Error handling if config.json is missing
+if not os.path.exists(CONFIG_PATH):
+    raise FileNotFoundError(
+        "Missing config.json. Please copy config.example.json to config.json and fill in your details."
+    )
+
+with open(CONFIG_PATH, "r") as f:
+    config = json.load(f)
+
+URL = config["wifi_url"]
+USERNAME = config["username"]
+PASSWORD = config["password"]
+PRODUCT_TYPE = config.get("product_type", "0")  # Default to "0" if not provided
+
+# --- DATABASE SETUP ---
 DB_NAME = "wifi_log.db"
 
 # Initialize logging
@@ -47,44 +60,46 @@ def log_attempt(username, password, a, response_status, response_message):
     conn.commit()
     conn.close()
 
+# --- HELPER FUNCTIONS ---
 def extract_message(response_text):
     """Extracts the meaningful message from the XML response."""
     match = re.search(r"<message><!\[CDATA\[(.*?)\]\]></message>", response_text)
     return match.group(1) if match else "Unknown response"
 
+# --- MAIN WIFI LOGIN FUNCTION ---
 def wifi_login():
     """Perform the WiFi login request and log the result."""
-    url = "POST url from the inspect element"  # Change Required
-    username = "username"
-    password = "password"
-    a_value = str(int(datetime.datetime.now().timestamp()))  # Generate dynamic 'a' value, you may refer to the screenshots in the setup.md file
+    a_value = str(int(datetime.datetime.now().timestamp()))  # Generate dynamic 'a' value
 
     payload = {
         "mode": "191",
-        "username": username,
-        "password": password,
+        "username": USERNAME,
+        "password": PASSWORD,
         "a": a_value,
-        "producttype": "0"
+        "producttype": PRODUCT_TYPE
     }
 
     try:
-        response = requests.post(url, data=payload)
+        response = requests.post(URL, data=payload)
         response_status = response.status_code
         response_message = extract_message(response.text)
 
-        logger.info("WiFi login attempt completed")
-        logger.info(f"Username: {username}")
-        logger.info(f"Session ID (a): {a_value}")
-        logger.info(f"Response status: {response_status}")
-        logger.info(f"Response message: {response_message}")
+        print(f"\n📌 Login Attempt")
+        print(f"Time: {datetime.datetime.now()}")
+        print(f"Username: {USERNAME}")
+        print(f"Session ID (a): {a_value}")
+        print(f"Status: {response_status}")
+        print(f"Message: {response_message}")
+        print("-" * 80)
 
         # Log the attempt in SQLite
-        log_attempt(username, password, a_value, response_status, response_message)
+        log_attempt(USERNAME, PASSWORD, a_value, response_status, response_message)
 
     except requests.exceptions.RequestException as e:
-        logger.error(f"WiFi login request failed: {e}")
-        log_attempt(username, password, a_value, "FAILED", str(e))
+        print(f"❌ Error: {e}")
+        log_attempt(USERNAME, PASSWORD, a_value, "FAILED", str(e))
 
+# --- VIEW LOGIN LOGS ---
 def view_logs(limit=5):
     """Display login logs in a readable format."""
     conn = sqlite3.connect(DB_NAME)
@@ -172,34 +187,88 @@ def parse_arguments():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    # Parse command line arguments
-    args = parse_arguments()
+def clear_logs():
+    """Deletes all logs from the login_attempts table."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM login_attempts")
+    conn.commit()
+    conn.close()
+    print("✅ All logs have been cleared.")
 
-    # Configure logging from command line arguments
-    LoggerFactory.configure_from_args(args)
-
-    # Get logger after configuration
-    logger = get_logger(__name__)
-
-    logger.info("WiFi Auto Login application started")
-
+def test_connection():
+    """Tests if the login URL is reachable."""
+    # This URL should eventually come from a config file
+    url = "POST url from the inspect element" # The same URL from wifi_login()
+    print(f" testing connection to {url}...")
     try:
-        setup_database()  # Ensure the database is set up
-
-        if args.view_logs is not None:
-            # View logs only
-            logger.info(f"Viewing last {args.max_attempts} login attempts")
-            view_logs(args.max_attempts)
+        response = requests.head(url, timeout=5) # Use HEAD to be efficient
+        if response.status_code == 200:
+            print(f"✅ Connection successful! The server responded with status {response.status_code}.")
         else:
-            # Perform login and show recent logs
-            logger.info("Performing WiFi login attempt")
-            wifi_login()  # Attempt login
-            logger.info("Login attempt completed, retrieving recent logs")
-            view_logs(args.max_attempts)  # Show last 5 login attempts
+            print(f"⚠️ Connection successful, but the server responded with status {response.status_code}.")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Connection failed: {e}")
 
-    except Exception as e:
-        logger.critical(f"Application error: {e}", exc_info=True)
-        sys.exit(1)
+def run_setup_wizard():
+    """Guides the user through an interactive setup process."""
+    print("--- WiFi-Auto-Auth Interactive Setup ---")
+    print("This wizard will help you configure the script.")
+    
+    url = input("1. Enter the POST request URL from your network's login page: ")
+    username = input("2. Enter your login username: ")
+    password = input("3. Enter your login password: ")
 
-    logger.info("WiFi Auto Login application completed successfully")
+    print("\nSetup Complete!")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="A script to automatically log into captive portal WiFi networks."
+    )
+    
+    parser.add_argument(
+        '--login', 
+        action='store_true', 
+        help="Perform a login attempt."
+    )
+    parser.add_argument(
+        '--view-logs', 
+        nargs='?', 
+        const=5, 
+        type=int, 
+        metavar='N', 
+        help="View the last N login attempts. Defaults to 5 if no number is provided."
+    )
+    parser.add_argument(
+        '--setup', 
+        action='store_true', 
+        help="Run the interactive setup wizard to configure credentials."
+    )
+    parser.add_argument(
+        '--test', 
+        action='store_true', 
+        help="Test the connection to the login URL without logging in."
+    )
+    parser.add_argument(
+        '--clear-logs', 
+        action='store_true', 
+        help="Clear all login logs from the database."
+    )
+
+    args = parser.parse_args()
+    setup_database()  # Ensure the database is always set up
+
+    if args.login:
+        wifi_login()
+    elif args.view_logs is not None:
+        view_logs(args.view_logs)
+    elif args.setup:
+        run_setup_wizard() 
+    elif args.test:
+        test_connection()
+    elif args.clear_logs:
+        clear_logs()
+    else:
+        print("No arguments provided. Performing default login action.")
+        wifi_login()
+        view_logs(1)
