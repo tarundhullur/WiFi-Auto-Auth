@@ -21,16 +21,19 @@ Show your support by starring this repository!
 
 Keep Adding your contribution in the below template,One after the other:
 
-## Your Issue Title
-**Contributor ID:**
-**Issue reference No.:** #1
+## Professional Logging System Implementation
+**Contributor ID:** cmarchena
+**Issue reference No.:** #6
 
 ### What I Changed:
-- Created config.json file for storing WiFi credentials
-- Updated login script to read from config file
-- Added example config file
+- Implemented comprehensive professional logging system with configurable log levels
+- Added CLI arguments for logging configuration (--log-level, --view-logs, etc.)
+- Created logging configuration module with environment variable support
+- Added log rotation for automatic file management
+- Updated README with detailed logging options documentation
+- Created .gitignore file to exclude logs, cache, and sensitive files
 
-**Files Changed:** `config.py`, `wifi_auto_login.py`, `config.example.json`
+**Files Changed:** `wifi_auto_login.py`, `config/logging_config.py`, `readme.md`, `.gitignore`
 
 ---
 

@@ -5,6 +5,63 @@ This script automatically logs into Wi-Fi networks using pre-saved credentials a
 
 Ideal for schools, workplaces, or any location with recurring Wi-Fi logins, this script eliminates manual re-authentication and ensures effortless connectivity. It's fully customizable, works across different networks, and can even be automated on startup for a seamless experience.
 
+## **Logging Options**
+
+This application features a comprehensive professional logging system that provides detailed insights into login attempts, debugging information, and system status. The logging system supports multiple output destinations, configurable log levels, and automatic log rotation.
+
+### **Command Line Arguments**
+
+The script accepts various logging-related command line arguments:
+
+- `--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level (default: INFO)
+- `--log-file` / `--no-log-file`: Enable or disable file logging (default: enabled)
+- `--log-dir DIR`: Directory for log files (default: ./logs)
+- `--console-logging` / `--no-console-logging`: Enable or disable console logging (default: enabled)
+- `--view-logs N`: View last N login attempts instead of performing login
+- `--max-attempts N`: Maximum number of login attempts to show (default: 5)
+
+**Usage Examples:**
+
+```bash
+# Run with debug logging
+python wifi_auto_login.py --log-level DEBUG
+
+# View recent login attempts
+python wifi_auto_login.py --view-logs 10
+
+# Disable file logging, only console output
+python wifi_auto_login.py --no-log-file
+
+# Custom log directory
+python wifi_auto_login.py --log-dir /var/log/wifi-auth
+```
+
+### **Environment Variables**
+
+Configure logging behavior using environment variables:
+
+- `LOG_LEVEL`: Overall logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- `CONSOLE_LOG_LEVEL`: Separate level for console output
+- `CONSOLE_LOGGING_ENABLED`: Enable/disable console logging (true/false)
+- `LOG_FILE_ENABLED`: Enable/disable file logging (true/false)
+- `LOG_DIR`: Directory for log files (default: ./logs)
+- `LOG_MAX_BYTES`: Maximum log file size before rotation (default: 10485760 = 10MB)
+- `LOG_BACKUP_COUNT`: Number of backup log files to keep (default: 5)
+
+**Example:**
+
+```bash
+export LOG_LEVEL=DEBUG
+export LOG_DIR=/home/user/logs
+python wifi_auto_login.py
+```
+
+### **Log Rotation**
+
+The application automatically rotates log files when they reach the maximum size (default 10MB). It keeps up to 5 backup files, ensuring logs don't consume excessive disk space while maintaining historical data.
+
+Log files are stored in the configured log directory with the name `wifi_auto_auth.log`, and rotated files are named `wifi_auto_auth.log.1`, `wifi_auto_auth.log.2`, etc.
+
 ### **For step-by-step setup instructions, please refer to [setup.md](https://github.com/01bps/WiFi-Auto-Auth/blob/main/setup.md)**
 
 ## **Security Notes**
