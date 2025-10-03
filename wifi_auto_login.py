@@ -27,6 +27,10 @@ PRODUCT_TYPE = config.get("product_type", "0")  # Default to "0" if not provided
 # --- DATABASE SETUP ---
 DB_NAME = "wifi_log.db"
 
+# Initialize logging
+setup_logging_from_env()
+logger = get_logger(__name__)
+
 def setup_database():
     """Create the database and table if they do not exist."""
     conn = sqlite3.connect(DB_NAME)
@@ -111,20 +115,77 @@ def view_logs(limit=5):
     conn.close()
 
     if not logs:
-        print("No login attempts found.")
+        logger.info("No login attempts found in database")
         return
 
-    print("\n📌 Recent Login Attempts")
-    print("=" * 80)
+    logger.info("Recent login attempts retrieved from database")
+    logger.info("=" * 80)
 
     for log in logs:
         timestamp, username, a, status, message = log
-        print(f"Time: {timestamp}")
-        print(f"Username: {username}")
-        print(f"Session ID (a): {a}")
-        print(f"Status: {status}")
-        print(f"Message: {message}")
-        print("-" * 80)
+        logger.info(f"Time: {timestamp}")
+        logger.info(f"Username: {username}")
+        logger.info(f"Session ID (a): {a}")
+        logger.info(f"Status: {status}")
+        logger.info(f"Message: {message}")
+        logger.info("-" * 80)
+
+def parse_arguments():
+    """Parse command line arguments for logging configuration."""
+    parser = argparse.ArgumentParser(description='WiFi Auto Login with Professional Logging')
+
+    # Logging configuration arguments
+    parser.add_argument(
+        '--log-level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help='Set the logging level (default: INFO)'
+    )
+    parser.add_argument(
+        '--log-file',
+        action='store_true',
+        default=True,
+        help='Enable file logging (default: enabled)'
+    )
+    parser.add_argument(
+        '--no-log-file',
+        action='store_false',
+        dest='log_file',
+        help='Disable file logging'
+    )
+    parser.add_argument(
+        '--log-dir',
+        default='./logs',
+        help='Directory for log files (default: ./logs)'
+    )
+    parser.add_argument(
+        '--console-logging',
+        action='store_true',
+        default=True,
+        help='Enable console logging (default: enabled)'
+    )
+    parser.add_argument(
+        '--no-console-logging',
+        action='store_false',
+        dest='console_logging',
+        help='Disable console logging'
+    )
+
+    # Application arguments
+    parser.add_argument(
+        '--view-logs',
+        type=int,
+        metavar='N',
+        help='View last N login attempts instead of performing login'
+    )
+    parser.add_argument(
+        '--max-attempts',
+        type=int,
+        default=5,
+        help='Maximum number of login attempts to show when viewing logs (default: 5)'
+    )
+
+    return parser.parse_args()
+
 
 def clear_logs():
     """Deletes all logs from the login_attempts table."""
